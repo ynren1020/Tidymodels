@@ -1,0 +1,6 @@
+# Posit PBC 
+# April 24 2024
+# Julia introduced How to develop and deploy a machine learning model with Posit
+
+library(vetiver)
+library(pin)
