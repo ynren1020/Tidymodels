@@ -2,5 +2,14 @@
 # April 24 2024
 # Julia introduced How to develop and deploy a machine learning model with Posit
 
+education dataset from tidytuesday package
+glimpse(education)
+
+education |>
+  ggplot(aes(education_score)) + 
+  geom_histogram()
+
+
+
 library(vetiver)
 library(pin)
