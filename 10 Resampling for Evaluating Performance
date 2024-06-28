@@ -6,3 +6,68 @@ There is a gap between our need to measure performance reliably and the data spl
 In this chapter, we describe an approach called resampling that can fill this gap. Resampling estimates of performance 
 can generalize to new data in a similar way as estimates from a test set. 
 
+Random forests are a tree ensemble method that operates by creating a large number of decision trees from slightly different versions of the training set (Breiman 2001a). 
+This collection of trees makes up the ensemble. When predicting a new sample, each ensemble member makes a separate prediction. 
+These are averaged to create the final ensemble prediction for the new data point.
+
+Random forest models are very powerful, and they can emulate the underlying data patterns very closely. 
+While this model can be computationally intensive, it is very low maintenance; very little preprocessing is required
+
+Many predictive models are capable of learning complex trends from the data. In statistics, these are commonly referred to as low bias models.
+In this context, bias is the difference between the true pattern or relationships in data and the types of patterns that the model can emulate. 
+Many black-box machine learning models have low bias, meaning they can reproduce complex relationships. 
+Other models (such as linear/logistic regression, discriminant analysis, and others) are not as adaptable and are considered high bias models.
+
+For a low bias model, the high degree of predictive capacity can sometimes result in the model nearly memorizing the training set data. 
+As an obvious example, consider a 1-nearest neighbor model. It will always provide perfect predictions for the training set no matter 
+how well it truly works for other data sets. Random forest models are similar; repredicting the training set will always result in 
+an artificially optimistic estimate of performance.
+
+10.2 Resampling method 
+Resampling methods are empirical simulation systems that emulate the process of using some data for modeling and different data for evaluation. 
+Most resampling methods are iterative, meaning that this process is repeated multiple times. 
+
+Resampling is conducted only on the training set. The test set is not involved. For each iteration of resampling, the data are partitioned into two subsamples:
+
+The model is fit with the analysis set.
+
+The model is evaluated with the assessment set.
+
+These two subsamples are somewhat analogous to training and test sets. Our language of analysis and assessment avoids confusion with the initial split of the data. 
+These data sets are mutually exclusive. The partitioning scheme used to create the analysis and assessment sets is usually the defining characteristic of the method.
+
+Suppose 20 iterations of resampling are conducted. This means that 20 separate models are fit on the analysis sets, and the corresponding assessment sets produce 20 sets of performance statistics. 
+The final estimate of performance for a model is the average of the 20 replicates of the statistics. This average has very good generalization properties and is far better than the resubstitution estimates.
+
+10.2.1 Cross-validation
+Cross-validation is a well established resampling method. While there are a number of variations, the most common cross-validation method is V-fold cross-validation. 
+The data are randomly partitioned into V sets of roughly equal size (called the folds). 
+
+Using V = 3 is a good choice to illustrate cross-validation, but it is a poor choice in practice because it is too low to generate reliable estimates. In practice, values of V are most often 5 or 10; 
+we generally prefer 10-fold cross-validation as a default because it is large enough for good results in most situations.
+
+What are the effects of changing V? Larger values result in resampling estimates with small bias but substantial variance. Smaller values of V have large bias but low variance. 
+We prefer 10-fold since noise is reduced by replication, but bias is not.
+
+REPEATED CROSS-VALIDATION
+The most important variation on cross-validation is repeated V-fold cross-validation. Depending on data size or other characteristics, 
+the resampling estimate produced by V-fold cross-validation may be excessively noisy.23 As with many statistical problems, 
+one way to reduce noise is to gather more data. For cross-validation, this means averaging more than V statistics.
+
+To create R repeats of V-fold cross-validation, the same fold generation process is done R times to generate R collections of V partitions. 
+Now, instead of averaging V statistics,  V×R statistics produce the final resampling estimate. Due to the Central Limit Theorem, the summary statistics 
+from each model tend toward a normal distribution, as long as we have a lot of data relative to  V×R.
+
+When choosing the number of repeats for repeated k-fold cross-validation (as in the vfold_cv function in R), it's important to consider the trade-off 
+between computational cost and the stability of the estimated performance metrics. The number of repeats is related to the variability in the estimated 
+performance metrics across different random splits of the data. Generally, a higher number of repeats will lead to more stable estimates of model performance, 
+especially when the dataset is small or when the model is sensitive to the random splits.
+
+The sample size of the dataset can indeed influence the choice of the number of repeats. For smaller datasets, it's often recommended to use a higher number of repeats 
+to ensure that the estimated performance metrics are reliable. On the other hand, for larger datasets, a lower number of repeats may still provide stable estimates of 
+model performance while reducing computational burden.
+In practice, it's common to use 3 to 10 repeats for repeated k-fold cross-validation, with 5 repeats being a reasonable default choice. 
+However, the optimal number of repeats can depend on the specific characteristics of the dataset and the modeling task.
+Ultimately, the choice of the number of repeats should be guided by a balance between the need for stable performance estimates and the available computational resources. 
+If in doubt, it's often a good practice to perform a sensitivity analysis by trying different numbers of repeats and evaluating the stability of the estimated performance metrics.
+
