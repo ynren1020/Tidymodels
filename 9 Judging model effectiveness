@@ -1,0 +1,5 @@
+the Matthews correlation coefficient (MCC) is a measure of the quality of binary classifications.
+It takes into account true and false positives and negatives and is generally regarded as a balanced measure 
+that can be used even if the classes are of very different sizes. The MCC ranges from -1 to +1, 
+where +1 represents a perfect prediction, 0 no better than random prediction, and -1 indicates total disagreement between prediction and observation.
+It is commonly used in machine learning to evaluate the performance of classification models.
