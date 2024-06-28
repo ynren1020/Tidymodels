@@ -3,3 +3,98 @@ It takes into account true and false positives and negatives and is generally re
 that can be used even if the classes are of very different sizes. The MCC ranges from -1 to +1, 
 where +1 represents a perfect prediction, 0 no better than random prediction, and -1 indicates total disagreement between prediction and observation.
 It is commonly used in machine learning to evaluate the performance of classification models.
+
+data(two_class_example)
+tibble(two_class_example)
+#> # A tibble: 500 × 4
+#>   truth   Class1   Class2 predicted
+#>   <fct>    <dbl>    <dbl> <fct>    
+#> 1 Class2 0.00359 0.996    Class2   
+#> 2 Class1 0.679   0.321    Class1   
+#> 3 Class2 0.111   0.889    Class2   
+#> 4 Class1 0.735   0.265    Class1   
+#> 5 Class2 0.0162  0.984    Class2   
+#> 6 Class1 0.999   0.000725 Class1   
+#> # ℹ 494 more rows
+
+# A confusion matrix: 
+conf_mat(two_class_example, truth = truth, estimate = predicted)
+#>           Truth
+#> Prediction Class1 Class2
+#>     Class1    227     50
+#>     Class2     31    192
+
+# Accuracy:
+accuracy(two_class_example, truth, predicted)
+#> # A tibble: 1 × 3
+#>   .metric  .estimator .estimate
+#>   <chr>    <chr>          <dbl>
+#> 1 accuracy binary         0.838
+
+# Matthews correlation coefficient:
+mcc(two_class_example, truth, predicted)
+#> # A tibble: 1 × 3
+#>   .metric .estimator .estimate
+#>   <chr>   <chr>          <dbl>
+#> 1 mcc     binary         0.677
+
+# F1 metric:
+f_meas(two_class_example, truth, predicted)
+#> # A tibble: 1 × 3
+#>   .metric .estimator .estimate
+#>   <chr>   <chr>          <dbl>
+#> 1 f_meas  binary         0.849
+
+# Combining these three classification metrics together
+classification_metrics <- metric_set(accuracy, mcc, f_meas)
+classification_metrics(two_class_example, truth = truth, estimate = predicted)
+#> # A tibble: 3 × 3
+#>   .metric  .estimator .estimate
+#>   <chr>    <chr>          <dbl>
+#> 1 accuracy binary         0.838
+#> 2 mcc      binary         0.677
+#> 3 f_meas   binary         0.849
+
+The Matthews correlation coefficient and F1 score both summarize the confusion matrix, but compared to mcc(), which measures the quality of both positive and negative examples, 
+the f_meas() metric emphasizes the positive class, i.e., the event of interest. For binary classification data sets like this example, 
+yardstick functions have a standard argument called event_level to distinguish positive and negative levels. 
+The default (which we used in this code) is that the first level of the outcome factor is the event of interest.
+
+There is some heterogeneity in R functions in this regard; some use the first level and others the second to denote the event of interest. 
+We consider it more intuitive that the first level is the most important. The second level logic is borne of encoding the outcome as 0/1 
+(in which case the second value is the event) and unfortunately remains in some packages. However, tidymodels (along with many other R packages) 
+require a categorical outcome to be encoded as a factor and, for this reason, the legacy justification for the second level as the event becomes irrelevant.
+
+There are numerous classification metrics that use the predicted probabilities as inputs rather than the hard class predictions. 
+For example, the receiver operating characteristic (ROC) curve computes the sensitivity and specificity over a continuum of different event thresholds. 
+The predicted class column is not used. There are two yardstick functions for this method: roc_curve() computes the data points that make up the ROC curve 
+and roc_auc() computes the area under the curve.
+
+two_class_curve <- roc_curve(two_class_example, truth, Class1)
+two_class_curve
+#> # A tibble: 502 × 3
+#>   .threshold specificity sensitivity
+#>        <dbl>       <dbl>       <dbl>
+#> 1 -Inf           0                 1
+#> 2    1.79e-7     0                 1
+#> 3    4.50e-6     0.00413           1
+#> 4    5.81e-6     0.00826           1
+#> 5    5.92e-6     0.0124            1
+#> 6    1.22e-5     0.0165            1
+#> # ℹ 496 more rows
+
+roc_auc(two_class_example, truth, Class1)
+#> # A tibble: 1 × 3
+#>   .metric .estimator .estimate
+#>   <chr>   <chr>          <dbl>
+#> 1 roc_auc binary         0.939
+
+autoplot(two_class_curve)
+
+Different metrics measure different aspects of a model fit, e.g., RMSE measures accuracy while the R^2 measures correlation. 
+Measuring model performance is important even when a given model will not be used primarily for prediction; 
+predictive power is also important for inferential or descriptive models. 
+
+
+
+
