@@ -1,0 +1,8 @@
+we usually need to understand the performance of a model or even multiple models before using the test set.
+
+Typically we can’t decide on which final model to use with the test set before first assessing model performance. 
+There is a gap between our need to measure performance reliably and the data splits (training and testing) we have available.
+
+In this chapter, we describe an approach called resampling that can fill this gap. Resampling estimates of performance 
+can generalize to new data in a similar way as estimates from a test set. 
+
