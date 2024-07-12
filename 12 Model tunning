@@ -1,0 +1,5 @@
+This chapter introduced the process of tuning model hyperparameters that cannot be directly estimated from the data. 
+Tuning such parameters can lead to overfitting, often by allowing a model to grow overly complex, 
+so using resampled data sets together with appropriate metrics for evaluation is important. 
+There are two general strategies for determining the right values, grid search and iterative search. 
+In tidymodels, the tune() function is used to identify parameters for optimization, and functions from the dials package can extract and interact with tuning parameters objects.
