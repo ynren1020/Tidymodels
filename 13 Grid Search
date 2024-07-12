@@ -1,0 +1,23 @@
+
+
+
+Space-filling designs can be very effective at representing the parameter space. The default design used by the tune package is the maximum entropy design. 
+These tend to produce grids that cover the candidate space well and drastically increase the chances of finding good results.
+
+Many of the predictors have skewed distributions. Since PCA is variance based, extreme values can have a detrimental effect on these calculations. 
+To counter this, let’s add a recipe step estimating a Yeo-Johnson transformation for each predictor (Yeo and Johnson 2000). 
+While originally intended as a transformation of the outcome, it can also be used to estimate transformations that encourage more symmetric distributions. 
+This step step_YeoJohnson() occurs in the recipe just prior to the initial normalization via step_normalize(). 
+Then, let’s combine this feature engineering recipe with our neural network model specification mlp_spec.
+
+In step_pca(), using zero PCA components is a shortcut to skip the feature extraction. 
+In this way, the original predictors can be directly compared to the results that include PCA components.
+
+Generally, it is a good idea to evaluate the models over multiple metrics so that different aspects of the model fit are taken into account. 
+Also, it often makes sense to choose a slightly suboptimal parameter combination that is associated with a simpler model. 
+For this model, simplicity corresponds to larger penalty values and/or fewer hidden units.
+
+This chapter discussed the two main classes of grid search (regular and non-regular) that can be used for model tuning and demonstrated how to construct these grids, 
+either manually or using the family of grid_*() functions. The tune_grid() function can evaluate these candidate sets of model parameters using resampling. 
+The chapter also showed how to finalize a model, recipe, or workflow to update the parameter values for the final fit. 
+Grid search can be computationally expensive, but thoughtful choices in the experimental design of such searches can make them tractable.
