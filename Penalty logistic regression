@@ -1,0 +1,64 @@
+# Elastic Net 
+library(tidymodels)
+
+# Example dataset
+data("two_class_dat", package = "modeldata")
+set.seed(123)
+split <- initial_split(two_class_dat, prop = 0.8)
+train_data <- training(split)
+test_data <- testing(split)
+
+# Define a recipe
+recipe <- recipe(Class ~ ., data = train_data) %>%
+  step_normalize(all_predictors())
+
+# Define the model
+elastic_net_spec <- logistic_reg(penalty = tune(), mixture = tune()) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification")
+
+
+# Define a workflow
+workflow <- workflow() %>%
+  add_recipe(recipe) %>%
+  add_model(elastic_net_spec)
+
+# Define grid for hyperparameter tuning
+grid <- grid_regular(penalty(), mixture(), levels = 10)
+
+# Define cross-validation folds
+cv_folds <- vfold_cv(train_data, v = 10)
+
+# Tune the model
+elastic_net_res <- tune_grid(
+  workflow,
+  resamples = cv_folds,
+  grid = grid
+)
+
+# Select the best model based on AUC
+elastic_net_best <- select_best(elastic_net_res, "roc_auc")
+
+# Finalize the workflow with the best hyperparameters
+final_elastic_net <- finalize_workflow(workflow, elastic_net_best)
+
+# Fit the final model on the training data
+final_elastic_net_fit <- fit(final_elastic_net, data = train_data)
+
+# Evaluate the model on the test data
+elastic_net_metrics <- predict(final_elastic_net_fit, test_data) %>%
+  bind_cols(test_data) %>%
+  roc_auc(truth = Class, .pred_Class1)
+
+# Print the metrics
+elastic_net_metrics
+
+
+Explanation:
+Data Preparation: The dataset is split into training and testing subsets.
+Recipe: A recipe is created to preprocess the data (e.g., normalization).
+Workflow: A workflow is defined that includes the recipe and the Elastic Net model specification.
+Grid Tuning: A grid of hyperparameters (penalty and mixture) is defined for tuning.
+Cross-Validation: Cross-validation is performed to tune the hyperparameters.
+Model Selection: The best model is selected based on the AUC metric.
+Final Model: The final model is fitted on the training data and evaluated on the test data.
