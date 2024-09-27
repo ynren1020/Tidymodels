@@ -1,0 +1,25 @@
+# https://www.youtube.com/watch?v=FZW_0HB-Eas&list=PL9HYL-VRX0oRsUB5AgNMQuKuHPpNDLBVt&index=6
+# model development with Posit Workbench
+# Model deploy (publish) with Posit Connect
+# Reproducibility with Posit Package Manager 
+
+library(vetiver)
+v <- extract_workflow(scs_lastfit) |> vetiver_model("SCS XGBoost) # can add meta data
+v
+
+library(pins)
+board <- board_connect()
+# write vetiver object to the board 
+board |> vetiver_pin_write(v)
+
+# deploy model 
+vetiver_deploy_rsconnect(board, "", predict_args = list(debug = TRUE))
+
+url <- "https://mdt.posit.com/scs_xgboost/predict"
+endpoint <- vetiver_endpoint(url)
+endpoint
+
+predict(endpoint, slice_sample(testdataset, n=5))
+
+
+
