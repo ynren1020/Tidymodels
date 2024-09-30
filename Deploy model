@@ -1,3 +1,11 @@
+# save model 
+# https://www.youtube.com/watch?v=qIzKJKcmh-s&list=PL9HYL-VRX0oTOK4cpbCbRk15K2roEgzVW&index=3
+library(readr)
+scs_lastfit |> 
+write_rds(file="app/scs_lastfit.rds")
+
+
+
 # https://www.youtube.com/watch?v=FZW_0HB-Eas&list=PL9HYL-VRX0oRsUB5AgNMQuKuHPpNDLBVt&index=6
 # model development with Posit Workbench
 # Model deploy (publish) with Posit Connect
