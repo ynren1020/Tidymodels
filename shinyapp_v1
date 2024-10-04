@@ -1,0 +1,115 @@
+
+#                                                                 #
+# Version of R software: R 4.3.1                                  #
+#                                                                 #
+###################################################################
+
+
+library(shiny)
+library(shinydashboard)
+library(tidymodels)
+library(tidyverse)
+library(xgboost)
+
+
+# scs_pain <- 
+#   read_csv("./scs_pain4modelsubwona.csv") |>
+#   janitor::clean_names()
+# skimr::skim(scs_pain)
+
+scs_pain <- readRDS("scs_pain4modelsubwona.rds")
+lr <- readRDS("scs_lr_lastfit.RDS")
+
+#model$pre$mold$predictors
+
+ui <- dashboardPage(
+  dashboardHeader(title = "SCS Resonder Prediction"),
+  dashboardSidebar(
+    disable = TRUE
+  ),
+  dashboardBody(
+    box(title = "Predicted SCS Resonder",
+        solidHeader = TRUE,
+        width = 4,
+        status = "primary",
+        valueBoxOutput("responder_prediction")),
+    box(width = 2, selectInput("pain_type", label = "Pain Type",
+                               choices = c("Mixed", "Neuropathic", "Nociceptive"))),
+    box(width = 2, selectInput("gender", label = "Gender",
+                               choices = c("male", "female"))),
+    box(width = 2, selectInput("race", label = "Race",
+                               choices = c("White", "Other"))),
+    box(width = 2, selectInput("trial_status", label = "Trial Status",
+                               choices = c("PostTrial", "PreTrial"))),
+    box(width = 2, selectInput("paintype", label = "Pain Location",
+                               choices = c("Combined", "Leg", "Back","Reference"))),
+    box(width = 2, selectInput("indscat", label = "Pain Indication",
+                               choices = c("Other", "Failed Back Pain", "CRPS"))),
+    box(width = 2, selectInput("depression_yn", label = "Depression",
+                               choices = c("No", "Yes"))),
+    box(width = 2, selectInput("medication_yn", label = "Medication",
+                               choices = c("No", "Yes"))),
+    fluidRow(
+      box(sliderInput("age", label = "Age (Years)",
+                      min = 20, max = 95, value = 45)),
+      box(sliderInput("bmi", label = "BMI (kg/m2)",
+                      min = 10, max = 60, value = 20),
+      box(sliderInput("nsymp", label = "Number of Symptom",
+                      min = 0, max = 10, value = 2))
+      ),
+    fluidRow(
+      box(sliderInput("eq5dindexbl", label = "EQ-5D-5L Index Value",
+                      min = -0.3, max = 1.000, value = 0.200)),
+      box(sliderInput("odiindexbl", label = "ODI Index Value",
+                      min = 0, max = 100, value = 40)),
+      box(sliderInput("painblscore", label = "Baseline Pain Score",
+                      min = 1, max = 10, value = 5))
+    )
+  )))
+
+server <- function(input, output) { 
+  
+  input_df <-       reactive(tibble(
+    "pain_type" = input$pain_type,
+    "gender" = input$gender,
+    "race" = input$race,
+    "trial_status" = input$trial_status,
+    "paintype" = input$paintype,
+    "indscat" = input$indscat,
+    "depression_yn" = input$depression_yn,
+    "medication_yn" = input$medication_yn,
+    "age" = as.integer(input$age),
+    "bmi" = input$bmi,
+    "nsymp" = input$nsymp,
+    "eq5dindexbl" = input$eq5dindexbl,
+    "odiindexbl" = input$odiindexbl,
+    "painblscore" = as.integer(input$painblscore)))
+  
+  
+  output$penguin_prediction <- renderValueBox({
+    prediction <- predict(model,input_df())
+    
+    
+    prediction_prob <- predict(model, input_df(), type = "prob") %>% 
+      gather() %>% 
+      arrange(desc(value)) %>% 
+      slice_max(value, n = 1) %>% 
+      select(value)
+    
+    prediction_color <- case_when(prediction$.pred_class == "Responder" ~ "blue",
+                                  prediction$.pred_class == "Non-Responder" ~ "red",
+                                  TRUE ~ "yellow")
+    
+    
+    valueBox(
+      value = paste0(round(100 * prediction_prob$value, 0), "%"),
+      subtitle = paste0("Results: ", prediction$.pred_class),
+      color = prediction_color,
+      icon = icon("snowflake"),
+    )
+  })  
+}
+
+shinyApp(ui, server)
+
+
